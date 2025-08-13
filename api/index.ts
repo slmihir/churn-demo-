@@ -25,9 +25,13 @@ async function ensureInitialized() {
 }
 
 // Lazy-init on first request (compatible with serverless cold starts)
-app.use(async (_req, _res, next) => {
+app.use(async (req, _res, next) => {
   if (!initialized) {
     await ensureInitialized();
+  }
+  // For serverless rewrites, Vercel passes path in query sometimes
+  if (req.query && typeof req.query.path === 'string') {
+    req.url = req.query.path;
   }
   next();
 });

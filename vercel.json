@@ -5,7 +5,7 @@
     { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist/public" } }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.ts" },
+    { "source": "/api/(.*)", "destination": "/api/index.ts?path=/$1" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
