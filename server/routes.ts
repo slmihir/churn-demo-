@@ -501,12 +501,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Risk alerts endpoint
+  // Risk alerts endpoint - Generate alerts based on ML predictions
   app.get("/api/alerts", async (req, res) => {
     try {
-      const alerts = await storage.getRiskAlerts();
-      res.json(alerts);
+      const customers = await storage.getCustomers();
+      const alerts: any[] = [];
+      let alertId = 1;
+      
+      // Generate alerts for high-risk customers based on ML predictions
+      for (const customer of customers) {
+        try {
+          const mlPrediction = mlEngine.predictChurn(customer.id);
+          const riskPercentage = mlPrediction.churnProbability * 100;
+          
+          // Generate alert for high-risk customers (>= 80%)
+          if (riskPercentage >= 80) {
+            alerts.push({
+              id: alertId++,
+              title: `High Churn Risk Detected: ${customer.name}`,
+              description: `Customer has ${riskPercentage.toFixed(1)}% churn probability. Risk level: ${mlPrediction.riskLevel}`,
+              severity: "critical",
+              createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000), // Within last 24h
+              isRead: Math.random() > 0.3, // 70% chance to be unread for demo
+            });
+          }
+          // Generate alert for medium-risk customers (>= 60%)
+          else if (riskPercentage >= 60) {
+            alerts.push({
+              id: alertId++,
+              title: `Medium Churn Risk: ${customer.name}`,
+              description: `Customer has ${riskPercentage.toFixed(1)}% churn probability. Monitor closely.`,
+              severity: "high",
+              createdAt: new Date(Date.now() - Math.random() * 48 * 60 * 60 * 1000), // Within last 48h
+              isRead: Math.random() > 0.5, // 50% chance to be unread
+            });
+          }
+          
+          // Generate alerts for specific risk factors
+          if (customer.healthScore < 30) {
+            alerts.push({
+              id: alertId++,
+              title: `Low Health Score Alert: ${customer.name}`,
+              description: `Health score dropped to ${customer.healthScore}. Immediate attention required.`,
+              severity: "high",
+              createdAt: new Date(Date.now() - Math.random() * 12 * 60 * 60 * 1000), // Within last 12h
+              isRead: Math.random() > 0.4,
+            });
+          }
+          
+          if (customer.supportTickets > 5) {
+            alerts.push({
+              id: alertId++,
+              title: `High Support Activity: ${customer.name}`,
+              description: `Customer has ${customer.supportTickets} support tickets. Potential satisfaction issue.`,
+              severity: "medium",
+              createdAt: new Date(Date.now() - Math.random() * 6 * 60 * 60 * 1000), // Within last 6h
+              isRead: Math.random() > 0.6,
+            });
+          }
+          
+        } catch (mlError) {
+          // Fallback to static risk analysis if ML fails
+          const staticRisk = parseFloat(customer.churnRisk || '0');
+          if (staticRisk >= 80) {
+            alerts.push({
+              id: alertId++,
+              title: `Risk Alert: ${customer.name}`,
+              description: `Static risk assessment shows ${staticRisk}% churn risk.`,
+              severity: "high",
+              createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+              isRead: Math.random() > 0.4,
+            });
+          }
+        }
+      }
+      
+      // Sort by creation date (newest first) and limit to most recent 20
+      alerts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const recentAlerts = alerts.slice(0, 20);
+      
+      res.json(recentAlerts);
     } catch (error) {
+      console.error('Failed to generate ML-based alerts:', (error as any).message);
       res.status(500).json({ message: "Failed to fetch risk alerts" });
     }
   });
@@ -522,15 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Integrations endpoint
-  app.get("/api/integrations", async (req, res) => {
-    try {
-      const integrations = await storage.getIntegrations();
-      res.json(integrations);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch integrations" });
-    }
-  });
+
 
   // Enhanced chart data endpoint with ML-generated trends
   app.get("/api/dashboard/chart-data", async (req, res) => {

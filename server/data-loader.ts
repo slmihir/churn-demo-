@@ -49,7 +49,7 @@ export class DataLoader {
       customers: jsonData.customers || DEFAULT_MOCK_DATA.customers,
       churnCauses: jsonData.churnCauses || DEFAULT_MOCK_DATA.churnCauses,
       interventions: jsonData.interventions || DEFAULT_MOCK_DATA.interventions,
-      integrations: jsonData.integrations || DEFAULT_MOCK_DATA.integrations,
+  
       riskAlerts: jsonData.riskAlerts || DEFAULT_MOCK_DATA.riskAlerts,
       dashboardSettings: {
         ...DEFAULT_MOCK_DATA.dashboardSettings,
@@ -94,9 +94,7 @@ export class DataLoader {
     return this.mockData.interventions;
   }
 
-  getIntegrations() {
-    return this.mockData.integrations;
-  }
+
 
   getRiskAlerts() {
     return this.mockData.riskAlerts;

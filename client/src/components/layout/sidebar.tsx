@@ -7,7 +7,7 @@ export default function Sidebar() {
     { path: "/", label: "Dashboard", icon: "fas fa-tachometer-alt" },
     { path: "/customers", label: "Customers", icon: "fas fa-users" },
     { path: "/playbooks", label: "Playbooks", icon: "fas fa-play-circle" },
-    { path: "/integrations", label: "Integrations", icon: "fas fa-plug" },
+
     { path: "/analytics", label: "Analytics", icon: "fas fa-chart-line" },
     { path: "/settings", label: "Settings", icon: "fas fa-cog" },
   ];

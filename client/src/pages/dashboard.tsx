@@ -2,11 +2,13 @@ import Sidebar from "@/components/layout/sidebar";
 import TopBar from "@/components/layout/topbar";
 import MetricsGrid from "@/components/dashboard/metrics-grid";
 import ChurnChart from "@/components/dashboard/churn-chart";
+import RetentionTrends from "@/components/dashboard/retention-trends";
+import RiskDistribution from "@/components/dashboard/risk-distribution";
 import CustomerSegmentation from "@/components/dashboard/customer-segmentation";
 import ChurnCauses from "@/components/dashboard/churn-causes";
 import RiskAlerts from "@/components/dashboard/risk-alerts";
 import InterventionsTable from "@/components/dashboard/interventions-table";
-import Integrations from "@/components/dashboard/integrations";
+
 import APIEndpoints from "@/components/dashboard/api-endpoints";
 import PlaybookModal from "@/components/dashboard/playbook-modal";
 import MLInsights from "@/components/dashboard/ml-insights";
@@ -24,7 +26,13 @@ export default function Dashboard() {
         
         <main className="flex-1 overflow-y-auto p-6">
           <MetricsGrid />
-          
+
+          {/* Retention + Risk Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <RetentionTrends />
+            <RiskDistribution />
+          </div>
+
           {/* ML Insights Section */}
           <div className="mb-8">
             <MLInsights />
@@ -42,10 +50,9 @@ export default function Dashboard() {
 
           <InterventionsTable onNewIntervention={() => setIsModalOpen(true)} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <Integrations />
-            <APIEndpoints />
-          </div>
+                        <div className="mt-6">
+                <APIEndpoints />
+              </div>
         </main>
       </div>
 

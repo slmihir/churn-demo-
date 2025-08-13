@@ -27,7 +27,18 @@ export default function InterventionsTable({ onNewIntervention }: InterventionsT
         completedAt: new Date().toISOString(),
       });
     },
-    onSuccess: () => {
+    onMutate: async (interventionId: number) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/interventions"] });
+      const previous = queryClient.getQueryData<any[]>(["/api/interventions"]);
+      queryClient.setQueryData<any[]>(["/api/interventions"], (old) =>
+        (old || []).map((i: any) => (i.id === interventionId ? { ...i, status: "completed", completedAt: new Date().toISOString() } : i))
+      );
+      return { previous } as { previous?: any[] };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(["/api/interventions"], context.previous);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interventions"] });
     },
   });

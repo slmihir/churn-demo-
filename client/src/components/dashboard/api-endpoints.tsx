@@ -1,8 +1,26 @@
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function APIEndpoints() {
+  const [lastResponse, setLastResponse] = useState<string>("");
+
+  const callEndpoint = useMutation({
+    mutationFn: async (endpoint: { method: string; path: string }) => {
+      if (endpoint.method === "GET") {
+        const res = await fetch(endpoint.path);
+        return res.json();
+      }
+      const res = await apiRequest(endpoint.method, endpoint.path, { customerId: 1 });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setLastResponse(JSON.stringify(data, null, 2));
+    },
+  });
   const endpoints = [
     {
       method: "POST",
@@ -50,15 +68,26 @@ export default function APIEndpoints() {
               <div className="mt-2 text-xs text-gray-500">
                 Response time: {endpoint.responseTime} | Success rate: {endpoint.successRate}
               </div>
+              <div className="mt-3">
+                <Button variant="outline" size="sm" onClick={() => callEndpoint.mutate(endpoint)} disabled={callEndpoint.isPending}>
+                  <i className="fas fa-play mr-2"></i>
+                  {callEndpoint.isPending ? "Calling..." : "Test"}
+                </Button>
+              </div>
             </div>
           ))}
         </div>
         
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => window.open("/APPLICATION_ARCHITECTURE.md", "_blank") }>
             <i className="fas fa-code mr-2"></i>
             View API Documentation
           </Button>
+          {lastResponse && (
+            <pre className="mt-3 text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-x-auto max-h-48">
+{lastResponse}
+            </pre>
+          )}
         </div>
       </CardContent>
     </Card>

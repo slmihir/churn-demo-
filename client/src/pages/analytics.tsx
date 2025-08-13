@@ -5,6 +5,7 @@ import TopBar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -320,8 +321,8 @@ export default function Analytics() {
   // Data-driven Action Items
   const actionItems = useMemo(() => {
     const totalCustomers = customers?.length || 0;
-    // Use ML predictions for consistent high-risk count
-    const highRisk = mlPredictions?.predictions?.filter((p: any) => (p.churnProbability || 0) >= 80).length || 0;
+    // Use ML predictions for consistent high-risk count (decimal thresholds)
+    const highRisk = mlPredictions?.predictions?.filter((p: any) => (p.churnProbability || 0) >= 0.8).length || 0;
     const billingCause = (causesData?.causes || []).find((c: any) => (c.category || '').toLowerCase().includes('billing'));
     const supportCause = (causesData?.causes || []).find((c: any) => (c.category || '').toLowerCase().includes('support'));
     const productCause = (causesData?.causes || []).find((c: any) => (c.category || '').toLowerCase().includes('product'));
@@ -405,8 +406,13 @@ export default function Analytics() {
 
   const kpiCards = useMemo(() => {
     const totalCustomers = customers?.length || 0;
-    const highRisk = (customers || []).filter((c: any) => parseFloat(c.churnRisk) >= 80).length;
-    const avgChurnRisk = (customers || []).reduce((s: number, c: any) => s + parseFloat(c.churnRisk), 0) / (totalCustomers || 1);
+    const hasML = Array.isArray(mlPredictions?.predictions) && mlPredictions.predictions.length > 0;
+    const highRisk = hasML
+      ? mlPredictions!.predictions.filter((p: any) => (p.churnProbability || 0) >= 0.8).length
+      : (customers || []).filter((c: any) => parseFloat(c.churnRisk) >= 80).length;
+    const avgChurnRisk = hasML
+      ? ((mlPredictions!.predictions.reduce((s: number, p: any) => s + (p.churnProbability || 0), 0) / (mlPredictions!.predictions.length || 1)) * 100)
+      : ((customers || []).reduce((s: number, c: any) => s + parseFloat(c.churnRisk), 0) / (totalCustomers || 1));
     const completed = (interventions || []).filter((i: any) => i.status === "completed").length;
     const successRate = (interventions || []).length ? (completed / (interventions as any[]).length) * 100 : 0;
     const retentionLast = (retentionTrends as any)?.datasets?.[0]?.data?.slice(-1)?.[0] ?? undefined;
@@ -415,8 +421,9 @@ export default function Analytics() {
         title: "Average Churn Risk",
         value: `${Number(avgChurnRisk.toFixed(1))}%`,
         change: `${highRisk} high-risk`,
-        changeType: "negative",
-        description: "Current average across customers",
+        changeType: highRisk > 0 ? "negative" : "positive",
+        description: hasML ? "ML-predicted average across customers" : "Current average across customers",
+        tooltip: "Average likelihood customers will churn"
       },
       {
         title: "Customers",
@@ -424,6 +431,7 @@ export default function Analytics() {
         change: `${highRisk} high-risk`,
         changeType: highRisk > 0 ? "negative" : "positive",
         description: "Total customers loaded",
+        tooltip: "Total active customer count"
       },
       {
         title: "Customer Retention",
@@ -431,6 +439,7 @@ export default function Analytics() {
         change: "from trend",
         changeType: "positive",
         description: "Latest retention level",
+        tooltip: "Percentage of customers staying subscribed"
       },
       {
         title: "Intervention Success",
@@ -438,9 +447,10 @@ export default function Analytics() {
         change: `${completed} completed`,
         changeType: "positive",
         description: "Overall completion rate",
+        tooltip: "Success rate of retention efforts"
       },
     ];
-  }, [customers, interventions, retentionTrends]);
+  }, [customers, interventions, retentionTrends, mlPredictions]);
 
   return (
     <div className="flex h-screen bg-background">
@@ -470,22 +480,31 @@ export default function Analytics() {
           </div>
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {kpiCards.map((kpi, index) => (
-              <Card key={index}>
-                <CardContent className="p-5">
-                  <h3 className="text-[12px] font-medium text-foreground/70 mb-2">{kpi.title}</h3>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[28px] font-semibold tracking-[-0.01em] text-foreground">{kpi.value}</p>
-                    <span className={`inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[11px] ${kpi.changeType === 'positive' ? 'text-success' : 'text-danger'}`}>
-                      {kpi.change}
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-foreground/60 mt-2">{kpi.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <TooltipProvider>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {kpiCards.map((kpi, index) => (
+                <UITooltip key={index}>
+                  <TooltipTrigger asChild>
+                    <Card className="cursor-help">
+                      <CardContent className="p-5">
+                        <h3 className="text-[12px] font-medium text-foreground/70 mb-2">{kpi.title}</h3>
+                        <div className="flex items-center justify-between">
+                          <p className="text-[28px] font-semibold tracking-[-0.01em] text-foreground">{kpi.value}</p>
+                          <span className={`inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[11px] ${kpi.changeType === 'positive' ? 'text-success' : 'text-danger'}`}>
+                            {kpi.change}
+                          </span>
+                        </div>
+                        <p className="text-[13px] text-foreground/60 mt-2">{kpi.description}</p>
+                      </CardContent>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{(kpi as any).tooltip}</p>
+                  </TooltipContent>
+                </UITooltip>
+              ))}
+            </div>
+          </TooltipProvider>
 
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

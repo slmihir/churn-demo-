@@ -49,14 +49,7 @@ export const interventions = pgTable("interventions", {
   notes: text("notes"),
 });
 
-export const integrations = pgTable("integrations", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  type: text("type").notNull(), // 'crm', 'support', 'payment', etc.
-  status: text("status").notNull().default('connected'), // 'connected', 'syncing', 'error'
-  lastSyncAt: timestamp("last_sync_at"),
-  config: jsonb("config"),
-});
+
 
 export const churnCauses = pgTable("churn_causes", {
   id: serial("id").primaryKey(),
@@ -82,7 +75,7 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertCustomerSchema = createInsertSchema(customers).omit({ id: true });
 export const insertChurnPredictionSchema = createInsertSchema(churnPredictions).omit({ id: true, predictionDate: true });
 export const insertInterventionSchema = createInsertSchema(interventions).omit({ id: true, createdAt: true });
-export const insertIntegrationSchema = createInsertSchema(integrations).omit({ id: true });
+
 export const insertChurnCauseSchema = createInsertSchema(churnCauses).omit({ id: true });
 export const insertRiskAlertSchema = createInsertSchema(riskAlerts).omit({ id: true, createdAt: true });
 
@@ -95,8 +88,7 @@ export type ChurnPrediction = typeof churnPredictions.$inferSelect;
 export type InsertChurnPrediction = z.infer<typeof insertChurnPredictionSchema>;
 export type Intervention = typeof interventions.$inferSelect;
 export type InsertIntervention = z.infer<typeof insertInterventionSchema>;
-export type Integration = typeof integrations.$inferSelect;
-export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
+
 export type ChurnCause = typeof churnCauses.$inferSelect;
 export type InsertChurnCause = z.infer<typeof insertChurnCauseSchema>;
 export type RiskAlert = typeof riskAlerts.$inferSelect;

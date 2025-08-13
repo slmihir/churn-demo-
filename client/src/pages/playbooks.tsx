@@ -66,8 +66,24 @@ export default function Playbooks() {
     mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
       return apiRequest("PATCH", `/api/interventions/${id}`, updates);
     },
-    onSuccess: () => {
+    onMutate: async ({ id, updates }: { id: number; updates: any }) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/interventions"] });
+      const previous = queryClient.getQueryData<any[]>(["/api/interventions"]);
+      queryClient.setQueryData<any[]>(["/api/interventions"], (old) => {
+        if (!old) return old as any;
+        return old.map((i: any) => (i.id === id ? { ...i, ...updates } : i));
+      });
+      return { previous } as { previous?: any[] };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["/api/interventions"], context.previous);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/interventions"] });
+    },
+    onSuccess: () => {
       toast({
         title: "Playbook Updated",
         description: "Intervention has been successfully updated.",
@@ -345,6 +361,76 @@ export default function Playbooks() {
               </div>
             </CardContent>
           </Card>
+          
+          {/* View Intervention Modal */}
+          <Dialog open={!!selectedPlaybook} onOpenChange={(open) => { if (!open) setSelectedPlaybook(null); }}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Intervention Details</DialogTitle>
+              </DialogHeader>
+              {selectedPlaybook && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Type</p>
+                      <p className="font-medium text-gray-900">{selectedPlaybook.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Status</p>
+                      <div className="mt-1 inline-flex">
+                        <Badge className={getStatusStyle(selectedPlaybook.status)}>{selectedPlaybook.status}</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Customer</p>
+                      <p className="font-medium text-gray-900">{getCustomerName(selectedPlaybook.customerId)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Assigned CSM</p>
+                      <p className="font-medium text-gray-900">{selectedPlaybook.assignedCsm}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Priority</p>
+                      <p className="font-medium text-gray-900 capitalize">{selectedPlaybook.priority}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Due Date</p>
+                      <p className="font-medium text-gray-900">{selectedPlaybook.dueDate ? new Date(selectedPlaybook.dueDate).toLocaleString() : '—'}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Description</p>
+                    <p className="text-sm text-gray-900">{selectedPlaybook.description || '—'}</p>
+                  </div>
+                  {selectedPlaybook.nextAction && (
+                    <div>
+                      <p className="text-sm text-gray-600">Next Action</p>
+                      <p className="text-sm text-gray-900">{selectedPlaybook.nextAction}</p>
+                    </div>
+                  )}
+                  {selectedPlaybook.notes && (
+                    <div>
+                      <p className="text-sm text-gray-600">Notes</p>
+                      <p className="text-sm text-gray-900">{selectedPlaybook.notes}</p>
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="outline" onClick={() => setSelectedPlaybook(null)}>Close</Button>
+                    {selectedPlaybook.status !== 'completed' && (
+                      <Button onClick={() => {
+                        updateInterventionMutation.mutate(
+                          { id: selectedPlaybook.id, updates: { status: 'completed', completedAt: new Date().toISOString() } },
+                          {
+                            onSuccess: () => setSelectedPlaybook(null),
+                          }
+                        );
+                      }}>Mark Completed</Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
 

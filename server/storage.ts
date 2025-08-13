@@ -1,8 +1,8 @@
 import { 
-  users, customers, churnPredictions, interventions, integrations, churnCauses, riskAlerts,
+  users, customers, churnPredictions, interventions, churnCauses, riskAlerts,
   type User, type InsertUser, type Customer, type InsertCustomer, 
   type ChurnPrediction, type InsertChurnPrediction, type Intervention, type InsertIntervention,
-  type Integration, type InsertIntegration, type ChurnCause, type InsertChurnCause,
+  type ChurnCause, type InsertChurnCause,
   type RiskAlert, type InsertRiskAlert
 } from "@shared/schema";
 import { dataLoader } from "./data-loader";
@@ -33,9 +33,7 @@ export interface IStorage {
   createIntervention(intervention: InsertIntervention): Promise<Intervention>;
   updateIntervention(id: number, intervention: Partial<Intervention>): Promise<Intervention | undefined>;
 
-  // Integrations
-  getIntegrations(): Promise<Integration[]>;
-  createIntegration(integration: InsertIntegration): Promise<Integration>;
+
 
   // Churn Causes
   getChurnCauses(): Promise<ChurnCause[]>;
@@ -52,7 +50,7 @@ export class MemStorage implements IStorage {
   private customers: Map<number, Customer> = new Map();
   private churnPredictions: Map<number, ChurnPrediction> = new Map();
   private interventions: Map<number, Intervention> = new Map();
-  private integrations: Map<number, Integration> = new Map();
+
   private churnCauses: Map<number, ChurnCause> = new Map();
   private riskAlerts: Map<number, RiskAlert> = new Map();
   
@@ -60,7 +58,7 @@ export class MemStorage implements IStorage {
   private currentCustomerId = 1;
   private currentPredictionId = 1;
   private currentInterventionId = 1;
-  private currentIntegrationId = 1;
+
   private currentCauseId = 1;
   private currentAlertId = 1;
 
@@ -78,7 +76,7 @@ export class MemStorage implements IStorage {
     this.customers.clear();
     this.churnPredictions.clear();
     this.interventions.clear();
-    this.integrations.clear();
+
     this.churnCauses.clear();
     this.riskAlerts.clear();
     
@@ -86,7 +84,7 @@ export class MemStorage implements IStorage {
     this.currentCustomerId = 1;
     this.currentPredictionId = 1;
     this.currentInterventionId = 1;
-    this.currentIntegrationId = 1;
+
     this.currentCauseId = 1;
     this.currentAlertId = 1;
   }
@@ -150,19 +148,7 @@ export class MemStorage implements IStorage {
       this.interventions.set(intervention.id, intervention);
     });
 
-    // Seed integrations from external data
-    const sampleIntegrations: Integration[] = mockData.integrations.map(integration => ({
-      id: this.currentIntegrationId++,
-      name: integration.name,
-      type: integration.type,
-      status: integration.status,
-      lastSyncAt: integration.lastSyncAt ? new Date(integration.lastSyncAt) : null,
-      config: integration.config || null,
-    }));
 
-    sampleIntegrations.forEach(integration => {
-      this.integrations.set(integration.id, integration);
-    });
 
     // Seed risk alerts from external data
     const sampleAlerts: RiskAlert[] = mockData.riskAlerts.map(alert => ({
@@ -283,22 +269,7 @@ export class MemStorage implements IStorage {
     return updatedIntervention;
   }
 
-  // Integration methods
-  async getIntegrations(): Promise<Integration[]> {
-    return Array.from(this.integrations.values());
-  }
-
-  async createIntegration(insertIntegration: InsertIntegration): Promise<Integration> {
-    const integration: Integration = { 
-      ...insertIntegration, 
-      id: this.currentIntegrationId++,
-      status: insertIntegration.status || 'connected',
-      lastSyncAt: insertIntegration.lastSyncAt || null,
-      config: insertIntegration.config || null
-    };
-    this.integrations.set(integration.id, integration);
-    return integration;
-  }
+  
 
   // Churn Cause methods
   async getChurnCauses(): Promise<ChurnCause[]> {

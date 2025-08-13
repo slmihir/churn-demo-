@@ -7,7 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Customers from "@/pages/customers";
 import Playbooks from "@/pages/playbooks";
 import Analytics from "@/pages/analytics";
-import Integrations from "@/pages/integrations";
+
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
@@ -19,7 +19,7 @@ function Router() {
       <Route path="/customers" component={Customers} />
       <Route path="/playbooks" component={Playbooks} />
       <Route path="/analytics" component={Analytics} />
-      <Route path="/integrations" component={Integrations} />
+      
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

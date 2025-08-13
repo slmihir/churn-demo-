@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { Brain, TrendingUp, Target, Zap, AlertCircle, CheckCircle, Activity, BarChart3, Users, Lightbulb, ArrowUpRight, Sparkles, RefreshCw, Play } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface FeatureImportance {
   feature: string;
@@ -118,6 +118,10 @@ export default function MLInsights() {
     queryKey: ["/api/ml/feature-importance"],
   });
 
+  const { data: customers } = useQuery<any[]>({
+    queryKey: ["/api/customers"],
+  });
+
   const { data: prediction, isLoading: predictionLoading } = useQuery<ChurnPrediction>({
     queryKey: ["/api/v1/churn/predict", selectedCustomerId],
     queryFn: async () => {
@@ -128,15 +132,13 @@ export default function MLInsights() {
 
   const { data: recommendation, isLoading: recommendationLoading } = useQuery<InterventionRecommendation>({
     queryKey: ["/api/ml/recommend-intervention", selectedCustomerId],
-    queryFn: () => apiRequest("POST", "/api/ml/recommend-intervention", { customerId: selectedCustomerId }),
-  });
-
-  const retrainMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/ml/retrain"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ml/"] });
+    queryFn: async () => {
+      const response = await apiRequest("POST", "/api/ml/recommend-intervention", { customerId: selectedCustomerId });
+      return response.json();
     },
   });
+
+  // Retrain model mutation removed per UI simplification
 
   const updateOutcomeMutation = useMutation({
     mutationFn: (data: { customerId: number; intervention: string; success: boolean; revenueImpact?: number }) =>
@@ -145,6 +147,15 @@ export default function MLInsights() {
       queryClient.invalidateQueries({ queryKey: ["/api/ml/analytics"] });
     },
   });
+
+  useEffect(() => {
+    if ((customers || []).length) {
+      const ids = (customers as any[]).map((c: any) => c.id);
+      if (!ids.includes(selectedCustomerId)) {
+        setSelectedCustomerId((customers as any[])[0].id);
+      }
+    }
+  }, [customers]);
 
   const getRiskColor = (risk: string | undefined) => {
     switch (risk) {
@@ -191,141 +202,17 @@ export default function MLInsights() {
               <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground/60">
                 <Brain size={18} />
               </div>
-              <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">ML Insights & Analytics</h3>
+              <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">Data Insights</h3>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => retrainMutation.mutate()}
-                disabled={retrainMutation.isPending}
-                className="text-[12px]"
-              >
-                {retrainMutation.isPending ? (
-                  <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
-                ) : (
-                  <Zap className="h-3 w-3 mr-2" />
-                )}
-                {retrainMutation.isPending ? 'Retraining...' : 'Retrain Model'}
-              </Button>
-            </div>
+            <div />
           </div>
 
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
+          <Tabs defaultValue="predictions" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="predictions">Predictions</TabsTrigger>
               <TabsTrigger value="features">Feature Analysis</TabsTrigger>
               <TabsTrigger value="interventions">Interventions</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              {/* Model Performance Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[12px] font-medium text-foreground/70">Accuracy</p>
-                        <p className="mt-1 text-[28px] font-semibold tracking-[-0.01em] text-foreground">
-                          {(analytics?.modelPerformance.accuracy * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground/60">
-                        <CheckCircle size={18} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[12px] font-medium text-foreground/70">Precision</p>
-                        <p className="mt-1 text-[28px] font-semibold tracking-[-0.01em] text-foreground">
-                          {(analytics?.modelPerformance.precision * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground/60">
-                        <Target size={18} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[12px] font-medium text-foreground/70">Recall</p>
-                        <p className="mt-1 text-[28px] font-semibold tracking-[-0.01em] text-foreground">
-                          {(analytics?.modelPerformance.recall * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground/60">
-                        <TrendingUp size={18} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[12px] font-medium text-foreground/70">F1 Score</p>
-                        <p className="mt-1 text-[28px] font-semibold tracking-[-0.01em] text-foreground">
-                          {(analytics?.modelPerformance.f1Score * 100).toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-muted text-foreground/60">
-                        <Brain size={18} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Risk Distribution */}
-              <Card>
-                <CardContent className="p-6">
-                  <h4 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground mb-4">Customer Risk Distribution</h4>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 bg-red-500 rounded"></div>
-                        <span>High Risk</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Progress value={(analytics?.riskDistribution.high / analytics?.totalCustomers) * 100} className="w-32" />
-                        <span className="font-semibold">{analytics?.riskDistribution.high}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                        <span>Medium Risk</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Progress value={(analytics?.riskDistribution.medium / analytics?.totalCustomers) * 100} className="w-32" />
-                        <span className="font-semibold">{analytics?.riskDistribution.medium}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 bg-green-500 rounded"></div>
-                        <span>Low Risk</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Progress value={(analytics?.riskDistribution.low / analytics?.totalCustomers) * 100} className="w-32" />
-                        <span className="font-semibold">{analytics?.riskDistribution.low}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="predictions" className="space-y-6">
               <div className="flex items-center gap-4 mb-4">
@@ -338,9 +225,9 @@ export default function MLInsights() {
                   onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
                   className="px-3 py-2 border border-border rounded-md bg-background text-foreground text-[12px]"
                 >
-                  {[...Array(20)].map((_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      Customer {i + 1}
+                  {(customers || []).map((c: any) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
