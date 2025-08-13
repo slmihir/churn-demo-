@@ -4,7 +4,7 @@ import {
   type ChurnPrediction, type InsertChurnPrediction, type Intervention, type InsertIntervention,
   type ChurnCause, type InsertChurnCause,
   type RiskAlert, type InsertRiskAlert
-} from "@shared/schema";
+} from "../shared/schema";
 import { dataLoader } from "./data-loader";
 
 export interface IStorage {

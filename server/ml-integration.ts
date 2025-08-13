@@ -1,7 +1,7 @@
 // Machine Learning Integration Interface
 // This file provides the structure for future ML model integration
 
-import { Customer } from "@shared/schema";
+import { Customer } from "../shared/schema";
 import { dataLoader } from "./data-loader";
 
 export interface MLModelInterface {

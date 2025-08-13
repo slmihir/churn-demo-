@@ -1,5 +1,5 @@
 // Data transformer to convert external JSON format to internal schema format
-import { MockDataConfiguration } from "@shared/data-types";
+import { MockDataConfiguration } from "../shared/data-types";
 
 interface ExternalDataFormat {
   customers: ExternalCustomer[];

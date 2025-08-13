@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertChurnPredictionSchema, insertInterventionSchema, insertRiskAlertSchema } from "@shared/schema";
+import { insertChurnPredictionSchema, insertInterventionSchema, insertRiskAlertSchema } from "../shared/schema";
 import { z } from "zod";
 import { dataLoader } from "./data-loader";
 import { mlEngine } from "./ml-engine";
