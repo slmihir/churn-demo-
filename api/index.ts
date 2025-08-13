@@ -29,9 +29,9 @@ app.use(async (req, _res, next) => {
   if (!initialized) {
     await ensureInitialized();
   }
-  // For serverless rewrites, Vercel passes path in query sometimes
-  if (req.query && typeof req.query.path === 'string') {
-    req.url = req.query.path;
+  // Ensure Express routes defined with /api/* also match when Vercel strips /api prefix
+  if (!req.url.startsWith('/api/')) {
+    req.url = '/api' + (req.url.startsWith('/') ? req.url : `/${req.url}`);
   }
   next();
 });
