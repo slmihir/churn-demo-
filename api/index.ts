@@ -1,6 +1,7 @@
 import express from "express";
 import { registerRoutes } from "../server/routes";
 import { mlEngine } from "../server/ml-engine";
+import { storage } from "../server/storage";
 
 const app = express();
 app.use(express.json());
@@ -10,6 +11,8 @@ let initialized = false;
 async function ensureInitialized() {
   if (!initialized) {
     try {
+      // Ensure in-memory storage is populated before attaching routes
+      await storage.loadData();
       await mlEngine.initialize();
     } catch (err) {
       console.error("ML Engine initialization failed:", (err as Error).message);
