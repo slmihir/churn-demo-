@@ -76,9 +76,9 @@ export default function MetricsGrid() {
           const isPositive = metric.changeType === "positive";
           const isNegative = metric.changeType === "negative";
           return (
-            <Tooltip key={index}>
+              <Tooltip key={index}>
               <TooltipTrigger asChild>
-                <Card className="cursor-help">
+                <Card>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
                       <div>

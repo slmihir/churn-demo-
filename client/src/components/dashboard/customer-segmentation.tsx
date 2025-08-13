@@ -59,7 +59,7 @@ export default function CustomerSegmentation() {
               <Tooltip key={segment.label}>
                 <TooltipTrigger asChild>
                   <div
-                    className="flex items-center justify-between rounded-lg border border-border bg-background p-4 cursor-help"
+                    className="flex items-center justify-between rounded-lg border border-border bg-background p-4"
                     style={{
                       boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--border), transparent 80%)",
                     }}

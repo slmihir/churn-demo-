@@ -485,7 +485,7 @@ export default function Analytics() {
               {kpiCards.map((kpi, index) => (
                 <UITooltip key={index}>
                   <TooltipTrigger asChild>
-                    <Card className="cursor-help">
+                    <Card>
                       <CardContent className="p-5">
                         <h3 className="text-[12px] font-medium text-foreground/70 mb-2">{kpi.title}</h3>
                         <div className="flex items-center justify-between">

@@ -97,7 +97,7 @@ export default function RiskDistribution() {
               <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">Churn Risk Distribution</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle size={14} className="text-foreground/40 cursor-help" />
+                  <HelpCircle size={14} className="text-foreground/40" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Distribution of customers by churn risk</p>
