@@ -30,11 +30,11 @@ export default function Playbooks() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: interventions, isLoading } = useQuery({
+  const { data: interventions, isLoading } = useQuery<any[]>({
     queryKey: ["/api/interventions"],
   });
 
-  const { data: customers } = useQuery({
+  const { data: customers } = useQuery<any[]>({
     queryKey: ["/api/customers"],
   });
 

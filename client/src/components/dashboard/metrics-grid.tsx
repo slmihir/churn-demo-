@@ -34,17 +34,17 @@ export default function MetricsGrid() {
       changeLabel: "vs last month",
       icon: AlertTriangle,
       color: 'var(--danger)',
-      tooltip: "Average churn probability across customers"
+              tooltip: "Average churn probability across users"
     },
     {
-      title: "Customers at Risk",
+              title: "Users at Risk",
       value: metrics?.customersAtRisk || 0,
       change: `+${metrics?.riskChange || 0}`,
       changeType: "negative",
       changeLabel: "since yesterday",
       icon: Users,
       color: 'var(--warning)',
-      tooltip: "Customers with high churn risk"
+              tooltip: "Users with high churn risk"
     },
     {
       title: "Active Interventions",

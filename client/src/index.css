@@ -68,7 +68,7 @@
   --background: hsl(0, 0%, 7%);
   --foreground: hsl(0, 0%, 98%);
 
-  --muted: hsl(240, 4%, 16%);
+  --muted: hsl(240, 4%, 12%);
   --muted-foreground: hsl(240, 5%, 64.9%);
 
   --popover: hsl(0, 0%, 7%);
@@ -77,8 +77,8 @@
   --card: hsl(0, 0%, 7%);
   --card-foreground: hsl(0, 0%, 98%);
 
-  --border: hsl(240, 4%, 18%);
-  --input: hsl(240, 4%, 18%);
+  --border: hsl(240, 4%, 22%);
+  --input: hsl(240, 4%, 22%);
 
   /* In dark, primary is white for better contrast */
   --primary: hsl(0, 0%, 100%);
@@ -96,12 +96,12 @@
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
 
-  /* Sidebar palette (dark) */
-  --sidebar-background: var(--background);
+  /* Sidebar palette (dark) - improved contrast */
+  --sidebar-background: hsl(0, 0%, 4%);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--muted);
+  --sidebar-accent: hsl(240, 4%, 14%);
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);

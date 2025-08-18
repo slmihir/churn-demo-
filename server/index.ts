@@ -70,6 +70,18 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+
+  // Handle server errors explicitly to avoid unhandled 'error' events
+  server.on("error", (err: any) => {
+    const code = (err && (err.code as string)) || "UNKNOWN";
+    if (code === "EADDRINUSE") {
+      log(`❌ Port ${port} is already in use. Please free it and retry.`);
+    } else {
+      log(`❌ Server error: ${err?.message || err}`);
+    }
+    // Exit so invoking process managers (npm scripts) don't hang silently
+    process.exit(1);
+  });
   server.listen(port, () => {
     log(`serving on port ${port}`);
     log(`🌐 Application running at: http://localhost:${port}`);

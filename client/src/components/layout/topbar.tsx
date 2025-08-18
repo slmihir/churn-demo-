@@ -38,6 +38,16 @@ export default function TopBar() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/alerts"] }),
   });
 
+  const [theme, setTheme] = useState<string>(() => localStorage.getItem('theme') || 'system');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const effective = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+    root.classList.toggle('dark', effective === 'dark');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   return (
     <header className="sticky top-0 z-30 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
@@ -48,6 +58,20 @@ export default function TopBar() {
           </Badge>
         </div>
         <div className="relative flex items-center gap-3" ref={dropdownRef}>
+          <div className="mr-2">
+            <label className="sr-only" htmlFor="theme-select">Theme</label>
+            <select
+              id="theme-select"
+              className="rounded-md border border-border bg-background px-2 py-1 text-[12px] focus-visible:ring-2 focus-visible:ring-ring"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              aria-label="Theme"
+            >
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
           <button
             className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-foreground/60 hover:text-foreground/90 hover:border-border"
             onClick={() => setIsOpen((v) => !v)}

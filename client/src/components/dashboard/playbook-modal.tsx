@@ -28,7 +28,7 @@ export default function PlaybookModal({ isOpen, onClose }: PlaybookModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: customers } = useQuery({
+  const { data: customers } = useQuery<any[]>({
     queryKey: ["/api/customers"],
   });
 

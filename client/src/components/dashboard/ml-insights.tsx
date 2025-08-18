@@ -114,6 +114,11 @@ export default function MLInsights() {
     queryKey: ["/api/ml/analytics"],
   });
 
+  const { data: modelMetrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ["/model/metrics/latest"],
+    retry: 1,
+  });
+
   const { data: featureImportance, isLoading: featuresLoading } = useQuery<{features: FeatureImportance[]}>({
     queryKey: ["/api/ml/feature-importance"],
   });
@@ -173,7 +178,7 @@ export default function MLInsights() {
     }
   };
 
-  if (analyticsLoading || featuresLoading) {
+  if (analyticsLoading || featuresLoading || metricsLoading) {
     return (
       <div className="space-y-6">
         <Card>
@@ -207,12 +212,107 @@ export default function MLInsights() {
             <div />
           </div>
 
-          <Tabs defaultValue="predictions" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="model" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="model">Model Metrics</TabsTrigger>
               <TabsTrigger value="predictions">Predictions</TabsTrigger>
               <TabsTrigger value="features">Feature Analysis</TabsTrigger>
               <TabsTrigger value="interventions">Interventions</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="model" className="space-y-6">
+              {modelMetrics ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <h4 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground mb-4">CV Metrics</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">ROC AUC</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.cv_metrics?.roc_auc?.toFixed(3) || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">PR AUC</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.cv_metrics?.pr_auc?.toFixed(3) || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Brier Score</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.cv_metrics?.brier?.toFixed(3) || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Lift @ 10%</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.cv_metrics?.lift_at_10pct?.toFixed(2) || 'N/A'}x
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <h4 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground mb-4">Model Info</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Version</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.version || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Trained</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.trained_at ? new Date(modelMetrics.trained_at).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Calibration</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.calibration?.method || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-foreground/70">Samples</span>
+                          <span className="text-[14px] font-semibold text-foreground">
+                            {modelMetrics.data_window?.n_samples || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {modelMetrics.threshold_table && (
+                    <Card>
+                      <CardContent className="p-6">
+                        <h4 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground mb-4">Threshold Table</h4>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {modelMetrics.threshold_table.slice(0, 5).map((threshold: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between text-sm">
+                              <span className="text-[12px] font-medium text-foreground/70">
+                                {threshold.threshold?.toFixed(2)}
+                              </span>
+                              <span className="text-[12px] font-semibold text-foreground">
+                                ${threshold.expected_value?.toFixed(0)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">No model metrics available. Train a model first.</p>
+                </div>
+              )}
+            </TabsContent>
 
             <TabsContent value="predictions" className="space-y-6">
               <div className="flex items-center gap-4 mb-4">

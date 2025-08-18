@@ -713,7 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         summary: {
           totalFeatures: featureAnalysis.length,
           highImpactFeatures: featureAnalysis.filter(f => f.importance > 20).length,
-          actionableFeatures: featureAnalysis.filter(f => f.actionability === 'high').length,
+          actionableFeatures: featureAnalysis.filter((f: any) => (f.actionability || 'low') === 'high').length,
           avgImportance: featureAnalysis.reduce((sum, f) => sum + f.importance, 0) / featureAnalysis.length,
         }
       });
@@ -806,7 +806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           f1Score: 0.85,
           mlSuccessRate: Math.round((mlPredictionsSuccess / customers.length) * 100),
         },
-        featureImportances,
+          featureImportances,
         healthScoreAnalytics: {
           average: Math.round(avgHealthScore * 10) / 10,
           distribution: healthDistribution,
@@ -828,13 +828,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         interventionStats,
         riskDistribution,
-        insights: {
-          topRiskFactors: featureImportances.slice(0, 3).map(f => ({
-            factor: f.feature,
-            impact: f.importance,
-            actionable: f.actionability === 'high',
-            recommendation: `${f.feature} shows ${f.importance.toFixed(1)}% impact on churn prediction.`
-          })),
+          insights: {
+            topRiskFactors: featureImportances.slice(0, 3).map((f: any) => ({
+              factor: f.feature,
+              impact: f.importance,
+              actionable: (f.actionability || 'low') === 'high',
+              recommendation: `${f.feature} shows ${Number(f.importance).toFixed(1)}% impact on churn prediction.`
+            })),
           healthTrends: {
             improving: Math.floor(customers.length * 0.3),
             declining: Math.floor(customers.length * 0.15),
@@ -892,6 +892,705 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to retrain model", 
         error: (error as any).message 
       });
+    }
+  });
+
+  // Model metrics endpoint for ML insights
+  app.get("/model/metrics/latest", async (req, res) => {
+    try {
+      // Simulate realistic model metrics for an insurance churn prediction model
+      const modelMetrics = {
+        version: "v2.3.1",
+        trained_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        cv_metrics: {
+          roc_auc: 0.847,
+          pr_auc: 0.723,
+          brier: 0.156,
+          lift_at_10pct: 2.84,
+          precision_at_95_recall: 0.312,
+          recall_at_95_precision: 0.189
+        },
+        calibration: {
+          method: "Platt Scaling",
+          reliability_score: 0.089,
+          max_calibration_error: 0.067
+        },
+        data_window: {
+          start_date: "2023-01-01",
+          end_date: "2024-12-31",
+          n_samples: 125420,
+          positive_rate: 0.087,
+          feature_count: 47
+        },
+        threshold_table: [
+          { threshold: 0.1, precision: 0.156, recall: 0.892, f1_score: 0.265, expected_value: 45.2 },
+          { threshold: 0.2, precision: 0.234, recall: 0.781, f1_score: 0.361, expected_value: 78.6 },
+          { threshold: 0.3, precision: 0.312, recall: 0.645, f1_score: 0.421, expected_value: 112.4 },
+          { threshold: 0.4, precision: 0.389, recall: 0.534, f1_score: 0.449, expected_value: 145.8 },
+          { threshold: 0.5, precision: 0.467, recall: 0.423, f1_score: 0.444, expected_value: 178.2 },
+          { threshold: 0.6, precision: 0.534, recall: 0.334, f1_score: 0.412, expected_value: 189.6 },
+          { threshold: 0.7, precision: 0.612, recall: 0.256, f1_score: 0.361, expected_value: 198.4 },
+          { threshold: 0.8, precision: 0.689, recall: 0.178, f1_score: 0.284, expected_value: 203.7 },
+          { threshold: 0.9, precision: 0.756, recall: 0.089, f1_score: 0.159, expected_value: 206.1 }
+        ],
+        feature_importance: [
+          { feature: "policy_tenure_months", importance: 0.187, stability: 0.923 },
+          { feature: "claims_frequency_12m", importance: 0.156, stability: 0.867 },
+          { feature: "premium_change_pct", importance: 0.134, stability: 0.891 },
+          { feature: "customer_service_contacts", importance: 0.123, stability: 0.856 },
+          { feature: "payment_failures_6m", importance: 0.089, stability: 0.901 },
+          { feature: "digital_engagement_score", importance: 0.067, stability: 0.834 },
+          { feature: "agent_relationship_score", importance: 0.056, stability: 0.812 },
+          { feature: "policy_complexity_index", importance: 0.045, stability: 0.789 },
+          { feature: "seasonal_payment_variance", importance: 0.034, stability: 0.765 },
+          { feature: "competitor_quote_requests", importance: 0.028, stability: 0.723 }
+        ],
+        performance_by_segment: {
+          high_value: { roc_auc: 0.889, precision: 0.623, recall: 0.734 },
+          medium_value: { roc_auc: 0.834, precision: 0.456, recall: 0.612 },
+          low_value: { roc_auc: 0.798, precision: 0.387, recall: 0.589 }
+        },
+        drift_metrics: {
+          feature_drift_score: 0.034,
+          prediction_drift_score: 0.021,
+          last_drift_check: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          drift_status: "stable"
+        }
+      };
+      
+      res.json(modelMetrics);
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Failed to fetch model metrics", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // Problem Intake API endpoints
+    app.get("/problems/demo-load", async (req, res) => {
+    try {
+      res.json({
+        problems: [
+          "policy_renewal_confusion",
+          "claims_processing_delays",
+          "premium_increase_concerns",
+          "coverage_gaps_identified",
+          "competitor_better_rates",
+          "agent_communication_issues",
+          "billing_autopay_failures",
+          "life_event_policy_updates",
+          "digital_platform_difficulties",
+          "risk_assessment_disputes",
+          "policy_cancellation_threats",
+          "coverage_denial_appeals",
+          "agent_availability_issues",
+          "documentation_complexity",
+          "payment_method_changes"
+        ],
+        offers: [
+          "premium_freeze_12_months",
+          "deductible_reduction_offer",
+          "multi_policy_bundle_discount",
+          "loyalty_cash_back_reward",
+          "priority_claims_processing",
+          "dedicated_agent_assignment",
+          "policy_review_consultation",
+          "accident_forgiveness_add_on",
+          "telematics_discount_program",
+          "family_plan_upgrade",
+          "premium_holiday_3_months",
+          "coverage_enhancement_package",
+          "claims_expedite_service",
+          "agent_retention_bonus",
+          "policy_restoration_offer",
+          "loyalty_tier_upgrade",
+          "payment_plan_flexibility",
+          "coverage_gap_insurance",
+          "agent_succession_planning",
+          "policy_portability_guarantee"
+        ]
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to load demo data" });
+    }
+  });
+
+  app.post("/problems/intake", async (req, res) => {
+    try {
+      const { problems, budget, offers } = z.object({
+        problems: z.array(z.string()),
+        budget: z.number().positive(),
+        offers: z.array(z.string()).optional()
+      }).parse(req.body);
+
+      // Store the intake data (in a real app, this would go to a database)
+      const intakeData = {
+        id: Date.now(),
+        problems,
+        budget,
+        offers: offers || [],
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      };
+
+      res.json({ 
+        success: true, 
+        intakeId: intakeData.id,
+        message: "Problem intake saved successfully" 
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Invalid intake data", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  app.get("/problems/prioritize", async (req, res) => {
+    try {
+      const problems = req.query.problems;
+      const problemsArray = Array.isArray(problems) ? problems : [problems].filter(Boolean);
+      
+      if (problemsArray.length === 0) {
+        return res.status(400).json({ message: "No problems provided" });
+      }
+
+      // Mock prioritization logic
+      const priorities = problemsArray.map((problem: any, index: number) => ({
+        problem,
+        urgency: Math.floor(Math.random() * 5) + 6, // 6-10
+        impact: Math.floor(Math.random() * 5) + 6, // 6-10
+        difficulty: Math.floor(Math.random() * 4) + 3, // 3-6
+        score: Math.floor(Math.random() * 20) + 80 // 80-100
+      })).sort((a: any, b: any) => b.score - a.score);
+
+      res.json({ priorities });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to prioritize problems" });
+    }
+  });
+
+  app.post("/problems/analyze", async (req, res) => {
+    try {
+      const { problems } = z.object({
+        problems: z.array(z.string())
+      }).parse(req.body);
+
+      // Insurance-specific root cause analysis
+      const analysis = problems.map((problem: string) => {
+        const causeMap: Record<string, string[]> = {
+          policy_renewal_confusion: [
+            "Complex renewal process and documentation",
+            "Poor communication about policy changes",
+            "Lack of proactive renewal reminders",
+            "Insufficient explanation of coverage updates"
+          ],
+          claims_processing_delays: [
+            "Understaffed claims processing teams",
+            "Complex approval workflows",
+            "Missing documentation requirements",
+            "Third-party vendor coordination issues"
+          ],
+          premium_increase_concerns: [
+            "Market-wide rate adjustments",
+            "Individual risk profile changes",
+            "Inadequate explanation of increase reasons",
+            "Lack of cost-saving alternatives presented"
+          ],
+          coverage_gaps_identified: [
+            "Insufficient needs assessment during onboarding",
+            "Life event changes not captured",
+            "Product portfolio limitations",
+            "Agent knowledge gaps about coverage options"
+          ],
+          competitor_better_rates: [
+            "Aggressive competitor pricing strategies",
+            "Outdated pricing models",
+            "Limited price matching policies",
+            "Insufficient value proposition communication"
+          ],
+          agent_communication_issues: [
+            "High agent turnover affecting relationships",
+            "Inadequate agent training on products",
+            "Poor communication tools and systems",
+            "Limited agent availability during peak times"
+          ],
+          billing_autopay_failures: [
+            "Outdated payment system infrastructure",
+            "Customer bank account changes not updated",
+            "Insufficient payment failure notification process",
+            "Limited payment method options"
+          ],
+          life_event_policy_updates: [
+            "Reactive rather than proactive policy reviews",
+            "Complex policy modification processes",
+            "Insufficient life event tracking systems",
+            "Limited customer education about coverage needs"
+          ],
+          digital_platform_difficulties: [
+            "Outdated user interface design",
+            "Poor mobile responsiveness",
+            "Complex navigation and user flows",
+            "Limited self-service capabilities"
+          ],
+          risk_assessment_disputes: [
+            "Unclear risk assessment criteria",
+            "Limited customer input in assessment process",
+            "Outdated risk evaluation models",
+            "Poor communication of risk factors"
+          ]
+        };
+
+        return {
+          problem,
+          likely_causes: causeMap[problem] || ["General business challenges", "Market conditions", "Product-market fit issues"],
+          domain_overlays: problem.includes("billing") || problem.includes("premium") ? [
+            "Implement proactive billing communication",
+            "Offer flexible payment plans and schedules",
+            "Enhance automated payment recovery processes",
+            "Provide transparent pricing explanations"
+          ] : problem.includes("claims") ? [
+            "Streamline claims documentation requirements",
+            "Implement digital claims submission tools",
+            "Enhance claims status tracking and communication",
+            "Provide estimated processing timelines"
+          ] : problem.includes("agent") ? [
+            "Invest in agent training and retention programs",
+            "Implement customer relationship management tools",
+            "Establish agent performance monitoring",
+            "Create customer-agent matching systems"
+          ] : []
+        };
+      });
+
+      res.json({ items: analysis });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to analyze problems", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  app.post("/problems/interventions", async (req, res) => {
+    try {
+      const { problems, budget, offers } = z.object({
+        problems: z.array(z.string()),
+        budget: z.number().positive(),
+        offers: z.array(z.string()).optional()
+      }).parse(req.body);
+
+      // Insurance-specific intervention recommendations
+      const interventionTypes = [
+        "agent_retention_call", "personalized_policy_review", "premium_adjustment_offer", 
+        "claims_expedite_service", "loyalty_rewards_program", "policy_bundle_consultation", 
+        "executive_account_review", "digital_platform_training", "dedicated_claims_manager",
+        "risk_assessment_appeal", "payment_plan_restructure", "coverage_gap_analysis"
+      ];
+
+      const recommendations = problems.map((problem: string) => ({
+        problem,
+        type: interventionTypes[Math.floor(Math.random() * interventionTypes.length)],
+        cost: Math.floor(Math.random() * (budget * 0.3)) + (budget * 0.1),
+        benefit: Math.floor(Math.random() * (budget * 2)) + budget,
+        notes: `Targeted intervention for ${problem.replace(/_/g, ' ')} based on budget and available offers`,
+        confidence: Math.floor(Math.random() * 30) + 70,
+        timeframe: `${Math.floor(Math.random() * 4) + 1}-${Math.floor(Math.random() * 4) + 4} weeks`
+      }));
+
+      res.json({ 
+        recommendations,
+        total_cost: recommendations.reduce((sum, r) => sum + r.cost, 0),
+        total_benefit: recommendations.reduce((sum, r) => sum + r.benefit, 0)
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to generate interventions", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  app.post("/problems/apply-bulk", async (req, res) => {
+    try {
+      const { interventions } = z.object({
+        interventions: z.array(z.object({
+          type: z.string(),
+          title: z.string(),
+          customerId: z.number().optional(),
+          cost: z.number().optional(),
+          expectedBenefit: z.number().optional()
+        }))
+      }).parse(req.body);
+
+      // Create interventions for high-risk customers
+      const customers = await storage.getCustomers();
+      const highRiskCustomers = customers.filter(c => parseFloat(c.churnRisk || '0') > 0.7);
+      
+      const createdInterventions = [];
+      
+      for (const intervention of interventions) {
+        for (const customer of highRiskCustomers.slice(0, Math.min(5, highRiskCustomers.length))) {
+          const newIntervention = await storage.createIntervention({
+            customerId: customer.id,
+            type: intervention.type,
+            status: 'active',
+            priority: 'high',
+            assignedCsm: 'AI Assistant',
+            description: intervention.title,
+            nextAction: 'Initial contact and assessment',
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+            notes: `Bulk intervention created from problem intake process. Estimated cost: $${intervention.cost || 0}, Expected benefit: $${intervention.expectedBenefit || 0}`
+          });
+          createdInterventions.push(newIntervention);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        applied: createdInterventions.length,
+        interventions: createdInterventions
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to apply interventions", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  app.post("/problems/manual-intervention", async (req, res) => {
+    try {
+      const { title, notes } = z.object({
+        title: z.string().min(1),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      // Create a manual intervention for a random high-risk customer
+      const customers = await storage.getCustomers();
+      const highRiskCustomers = customers.filter(c => parseFloat(c.churnRisk || '0') > 0.6);
+      const selectedCustomer = highRiskCustomers[Math.floor(Math.random() * highRiskCustomers.length)];
+
+      if (!selectedCustomer) {
+        return res.status(404).json({ message: "No suitable customers found for intervention" });
+      }
+
+      const intervention = await storage.createIntervention({
+        customerId: selectedCustomer.id,
+        type: 'Manual Intervention',
+        status: 'active',
+        priority: 'medium',
+        assignedCsm: 'User Created',
+        description: title,
+        nextAction: 'Review and execute manual intervention',
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+        notes: notes || 'Manual intervention created by user'
+      });
+
+      res.json({ 
+        success: true, 
+        intervention,
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to create manual intervention", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // Cluster intervention endpoint
+  app.post("/interventions/cluster-apply", async (req, res) => {
+    try {
+      const { cluster_id, intervention_type, priority, notes, estimated_cost, expected_benefit } = z.object({
+        cluster_id: z.number(),
+        intervention_type: z.string(),
+        priority: z.number().optional(),
+        notes: z.string().optional(),
+        estimated_cost: z.number().optional(),
+        expected_benefit: z.number().optional()
+      }).parse(req.body);
+
+      // Get customers in the cluster (mock implementation)
+      const customers = await storage.getCustomers();
+      // For demo purposes, assign customers to clusters based on ID modulo
+      const clusterCustomers = customers.filter(c => c.id % 5 === cluster_id);
+
+      const createdInterventions = [];
+      
+      for (const customer of clusterCustomers) {
+        const intervention = await storage.createIntervention({
+          customerId: customer.id,
+          type: intervention_type.replace(/_/g, ' '),
+          status: 'active',
+          priority: priority === 1 ? 'high' : priority === 2 ? 'medium' : 'low',
+          assignedCsm: 'Cluster Operations',
+          description: `Cluster ${cluster_id} bulk intervention: ${intervention_type.replace(/_/g, ' ')}`,
+          nextAction: 'Execute cluster-wide intervention strategy',
+          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+          notes: `${notes || ''} | Estimated cost: $${estimated_cost || 0} | Expected benefit: $${expected_benefit || 0}`
+        });
+        createdInterventions.push(intervention);
+      }
+
+      res.json({ 
+        success: true, 
+        interventions_created: createdInterventions.length,
+        cluster_id,
+        intervention_type,
+        total_customers: clusterCustomers.length
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to apply cluster intervention", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // Bulk intervention actions endpoint
+  app.post("/api/interventions/bulk", async (req, res) => {
+    try {
+      const { taskIds, action, notes } = z.object({
+        taskIds: z.array(z.string()),
+        action: z.string(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      let updated = 0;
+      const results = [];
+
+      for (const taskId of taskIds) {
+        try {
+          const id = parseInt(taskId);
+          let updateData: any = {};
+
+          switch (action) {
+            case 'complete':
+              updateData = { 
+                status: 'completed', 
+                completedAt: new Date().toISOString(),
+                notes: `${notes || ''} - Bulk completed`
+              };
+              break;
+            case 'fail':
+              updateData = { 
+                status: 'cancelled',
+                notes: `${notes || ''} - Bulk failed/cancelled`
+              };
+              break;
+            case 'escalate':
+              updateData = { 
+                priority: 'high',
+                assignedCsm: 'Senior CS Manager',
+                notes: `${notes || ''} - Bulk escalated`
+              };
+              break;
+            default:
+              throw new Error(`Unknown action: ${action}`);
+          }
+
+          const intervention = await storage.updateIntervention(id, updateData);
+          if (intervention) {
+            updated++;
+            results.push({ id, status: 'success' });
+          } else {
+            results.push({ id, status: 'not_found' });
+          }
+        } catch (error) {
+          results.push({ id: taskId, status: 'error', error: (error as any).message });
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        updated,
+        total: taskIds.length,
+        action,
+        results
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to perform bulk action", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // Bulk intervention application endpoint
+  app.post("/api/interventions/bulk-apply", async (req, res) => {
+    try {
+      const { userIds, interventionType, notes } = z.object({
+        userIds: z.array(z.number()),
+        interventionType: z.string(),
+        notes: z.string().optional(),
+      }).parse(req.body);
+
+      const customers = await storage.getCustomers();
+      const targetCustomers = customers.filter((c: any) => userIds.includes(c.id));
+      
+      if (targetCustomers.length === 0) {
+        return res.status(404).json({ message: "No users found with provided IDs" });
+      }
+
+      const createdInterventions = [];
+      
+      for (const customer of targetCustomers) {
+        const intervention = await storage.createIntervention({
+          customerId: customer.id,
+          type: interventionType,
+          status: 'active',
+          priority: 'medium',
+          assignedCsm: 'Bulk Operations',
+          description: `Bulk intervention: ${interventionType}`,
+          nextAction: 'Execute bulk intervention strategy',
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          notes: notes || `Bulk intervention: ${interventionType}`
+        });
+        createdInterventions.push(intervention);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Applied ${interventionType} to ${createdInterventions.length} users`,
+        updated: createdInterventions.length,
+        total: userIds.length
+      });
+    } catch (error) {
+      res.status(400).json({ 
+        message: "Failed to apply bulk intervention", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // Intervention success analytics endpoint
+  app.get("/api/interventions/analytics", async (req, res) => {
+    try {
+      const interventions = await storage.getInterventions();
+      const customers = await storage.getCustomers();
+      
+      // Calculate intervention success rates by type
+      const interventionsByType: Record<string, any[]> = {};
+      interventions.forEach(intervention => {
+        const type = intervention.type;
+        if (!interventionsByType[type]) {
+          interventionsByType[type] = [];
+        }
+        interventionsByType[type].push(intervention);
+      });
+
+      const successRatesByType = Object.entries(interventionsByType).map(([type, typeInterventions]) => {
+        const completed = typeInterventions.filter(i => i.status === 'completed').length;
+        const total = typeInterventions.length;
+        const successRate = total > 0 ? (completed / total) * 100 : 0;
+        
+        // Calculate average cost savings (mock calculation)
+        const avgCostSavings = completed * (Math.random() * 2000 + 1000); // $1000-$3000 per success
+        
+        return {
+          type,
+          total_interventions: total,
+          successful: completed,
+          success_rate: Math.round(successRate * 10) / 10,
+          avg_cost_savings: Math.round(avgCostSavings),
+          avg_time_to_complete: Math.round(Math.random() * 10 + 5), // 5-15 days
+        };
+      });
+
+      // Calculate overall metrics
+      const totalInterventions = interventions.length;
+      const completedInterventions = interventions.filter(i => i.status === 'completed').length;
+      const overallSuccessRate = totalInterventions > 0 ? (completedInterventions / totalInterventions) * 100 : 0;
+      
+      // Customer retention analysis
+      const highRiskCustomers = customers.filter(c => parseFloat(c.churnRisk || '0') > 0.7);
+      const interventionCustomers = [...new Set(interventions.map(i => i.customerId))];
+      const highRiskWithInterventions = highRiskCustomers.filter(c => interventionCustomers.includes(c.id));
+      
+      const retentionAnalysis = {
+        high_risk_customers: highRiskCustomers.length,
+        high_risk_with_interventions: highRiskWithInterventions.length,
+        intervention_coverage: highRiskCustomers.length > 0 ? 
+          Math.round((highRiskWithInterventions.length / highRiskCustomers.length) * 100) : 0,
+        estimated_retention_improvement: Math.round(overallSuccessRate * 0.8), // Conservative estimate
+      };
+
+      // ROI calculation
+      const estimatedRevenueSaved = completedInterventions * 2500; // $2500 per successful intervention
+      const estimatedCosts = totalInterventions * 200; // $200 average cost per intervention
+      const roi = estimatedCosts > 0 ? ((estimatedRevenueSaved - estimatedCosts) / estimatedCosts) * 100 : 0;
+
+      res.json({
+        overall_metrics: {
+          total_interventions: totalInterventions,
+          completed_interventions: completedInterventions,
+          success_rate: Math.round(overallSuccessRate * 10) / 10,
+          estimated_revenue_saved: estimatedRevenueSaved,
+          estimated_costs: estimatedCosts,
+          roi_percentage: Math.round(roi * 10) / 10,
+        },
+        success_rates_by_type: successRatesByType.sort((a, b) => b.success_rate - a.success_rate),
+        retention_analysis: retentionAnalysis,
+        top_performing_interventions: successRatesByType
+          .filter(t => t.total_interventions >= 2)
+          .sort((a, b) => b.success_rate - a.success_rate)
+          .slice(0, 5),
+        insights: [
+          `${successRatesByType.find(t => t.success_rate === Math.max(...successRatesByType.map(s => s.success_rate)))?.type || 'Unknown'} interventions show the highest success rate`,
+          `${retentionAnalysis.intervention_coverage}% of high-risk customers have active interventions`,
+          `Average ROI of ${Math.round(roi)}% indicates strong intervention program value`,
+          `${completedInterventions} successful interventions potentially saved $${estimatedRevenueSaved.toLocaleString()}`
+        ]
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Failed to generate intervention analytics", 
+        error: (error as any).message 
+      });
+    }
+  });
+
+  // CSV import for customers
+  app.post("/api/import/customers/csv", async (req, res) => {
+    try {
+      const csvText = z.string().parse(req.body?.csv);
+      const { importCustomersFromCsv, importCustomersFromRandomCsv } = await import("./importers");
+      // Heuristic: if header contains insurance sample columns, use random csv mapper
+      const header = csvText.split(/\r?\n/, 1)[0] || "";
+      if (header.includes("Customer Name") && header.includes("Claim Reason")) {
+        await importCustomersFromRandomCsv(csvText);
+      } else {
+        await importCustomersFromCsv(csvText);
+      }
+      await storage.loadData();
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to import CSV", error: (error as any).message });
+    }
+  });
+
+  // Google Sheets import (public CSV export or private with key)
+  app.post("/api/import/customers/google-sheets", async (req, res) => {
+    try {
+      const { sheetUrl } = z.object({ sheetUrl: z.string().url() }).parse(req.body);
+      // If this is a standard Google Sheets share link, transform to CSV export
+      let csvUrl = sheetUrl;
+      if (sheetUrl.includes("/edit")) {
+        csvUrl = sheetUrl.replace(/\/edit.*$/, "/export?format=csv");
+      }
+      const resp = await fetch(csvUrl);
+      if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+      const csvText = await resp.text();
+      const { importCustomersFromCsv } = await import("./importers");
+      await importCustomersFromCsv(csvText);
+      await storage.loadData();
+      res.json({ success: true, rows: csvText.split(/\n/).length - 1 });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to import Google Sheet", error: (error as any).message });
     }
   });
 

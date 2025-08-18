@@ -2,8 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type CausesResponse = { causes: Array<{ name: string; description: string; impact: number; category: string; icon: string }>; responseTime?: number };
+
 export default function ChurnCauses() {
-  const { data: causesData, isLoading } = useQuery({
+  const { data: causesData, isLoading } = useQuery<CausesResponse>({
     queryKey: ["/api/v1/causes/explain"],
   });
 

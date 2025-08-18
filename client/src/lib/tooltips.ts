@@ -1,0 +1,48 @@
+export const HoverCopy = {
+  pChurnTitle: "What is p(Churn)?",
+  pChurnBody: (v: string) =>
+    `Probability a policy lapses within 60 days of expiry. Predicted by model ${v}.`,
+  lineageTitle: "Where does this metric come from?",
+  lineageBody:
+    "Features from policies, payments, claims, and touchpoints. See Model → Data Lineage.",
+  whyRiskyTitle: "Why is this risky?",
+  whyRiskyItem: (label: string, value: string) => `${label}: ${value}`,
+  dataFreshnessTitle: "Data Freshness",
+  dataFreshnessBody: (h: number) => `Last refreshed ~${h} hours ago.`,
+  whatImprovesTitle: "What may improve retention?",
+  whatImprovesBody:
+    "Enable autopay, proactive contact <14 days before renewal, and review price hikes >10%.",
+  // Customers table fields
+  customerTitle: "Customer Identity",
+  customerBody: "Name, email, and company from CRM or policy admin system.",
+  planTitle: "Subscription/Policy Plan",
+  planBody: "Current product tier or policy type (e.g., Basic/Pro, Auto/Home).",
+  mrrTitle: "Monthly Recurring Revenue",
+  mrrBody: "Recurring premium or fee billed per month (excludes one-off charges).",
+  healthTitle: "Health Score",
+  healthBody: "Composite engagement/support/payment metric (0–100, higher is better).",
+  churnTitle: "Churn Risk",
+  churnBody: (v: string) => `Predicted lapse/cancel probability. Model ${v}.`,
+  lastLoginTitle: "Last Login",
+  lastLoginBody: "Most recent user activity. Use to detect disengagement.",
+  npsTitle: "NPS Score",
+  npsBody: "Customer-reported satisfaction (0–10). Lower values correlate with churn.",
+  ticketsTitle: "Support Tickets",
+  ticketsBody: "Open/closed case volume. High volume often precedes churn.",
+  claimsTitle: "Claims",
+  claimsBody: "Number of recent claims. High frequency may increase lapse risk.",
+  lateDaysTitle: "Late Payment Days",
+  lateDaysBody: "Cumulative days past due. Payment friction elevates churn risk.",
+  priceIncTitle: "Price Increase %",
+  priceIncBody: "Recent rate hike percentage. Large increases can trigger churn.",
+  daysToRenewalTitle: "Days to Renewal",
+  daysToRenewalBody: "Days until policy renewal. Target outreach <14 days.",
+  tenureTitle: "Policy Tenure",
+  tenureBody: "Days since policy start. Longer tenure may stabilize renewal.",
+  autopayTitle: "Autopay Enabled",
+  autopayBody: "Auto-debit reduces missed payments and lapse risk.",
+  payMethodTitle: "Payment Method",
+  payMethodBody: "Card/ACH/Cash. Friction varies by method; ACH is typically stickier.",
+} as const;
+
+

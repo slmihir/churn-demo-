@@ -123,10 +123,12 @@ export class RandomForestPredictor {
           importance: normalizedImportance,
           impact: this.determineImpact(feature),
           description: this.getFeatureDescription(feature),
-          rawImportance: importance,
-          confidenceLevel: this.calculateConfidenceLevel(normalizedImportance),
-          actionability: this.getActionability(feature),
-        };
+          // augment with optional fields for server-side analytics where used
+          // these are not part of the exported type but are consumed internally
+          rawImportance: importance as any,
+          confidenceLevel: this.calculateConfidenceLevel(normalizedImportance) as any,
+          actionability: this.getActionability(feature) as any,
+        } as any;
       });
   }
 
@@ -461,7 +463,7 @@ export class ReinforcementLearningAgent {
     
     for (const [state, actions] of this.qTable.entries()) {
       const bestAction = this.getBestActionForState(actions);
-      const avgQValue = Array.from(actions.values()).reduce((sum, q) => sum + q, 0) / actions.size;
+      const avgQValue = (Array.from(actions.values()) as number[]).reduce((sum: number, q: number) => sum + q, 0) / actions.size;
       
       analytics[state] = {
         bestAction,
@@ -759,9 +761,13 @@ export class MLEngine {
     const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24));
     const daysSinceLastLogin = Math.floor((now.getTime() - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    const featureUsageTotal = (customer.feature_usage?.featureA || 0) + 
-                             (customer.feature_usage?.featureB || 0) + 
-                             (customer.feature_usage?.featureC || 0);
+    const featureUsageTotal = (customer.feature_usage?.featureA || customer.feature_usage?.login || 0) + 
+                             (customer.feature_usage?.featureB || customer.feature_usage?.features || 0) + 
+                             (customer.feature_usage?.featureC || customer.feature_usage?.api_calls || 0) +
+                             // Insurance-specific weights
+                             (customer.feature_usage?.claims || 0) * 5 +
+                             (customer.feature_usage?.late_days || 0) * 0.5 +
+                             (customer.feature_usage?.price_increase_pct || 0) * 1;
 
     const planValue = customer.plan === 'Enterprise' ? 3 : customer.plan === 'Pro' ? 2 : 1;
 

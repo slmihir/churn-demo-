@@ -4,7 +4,7 @@ import { MockDataConfiguration } from "../shared/data-types";
 interface ExternalDataFormat {
   customers: ExternalCustomer[];
   interventions: ExternalIntervention[];
-
+  integrations?: ExternalIntegration[];
   alerts: ExternalAlert[];
   churn_predictions: ExternalChurnPrediction[];
   churn_causes: ExternalChurnCause[];
@@ -47,6 +47,15 @@ interface ExternalIntervention {
   created_at: string;
   completed_at: string | null;
   notes: string;
+}
+
+interface ExternalIntegration {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+  last_sync_at: string;
+  config: Record<string, any>;
 }
 
 
@@ -130,7 +139,13 @@ export class DataTransformer {
         },
         isActive: customer.is_active,
       })),
-
+      integrations: (external.integrations || []).map((i) => ({
+        name: i.name,
+        type: i.type,
+        status: i.status,
+        lastSyncAt: i.last_sync_at,
+        config: i.config,
+      })),
       interventions: external.interventions.map(intervention => ({
         customerId: intervention.customer_id,
         type: intervention.type,
@@ -140,7 +155,7 @@ export class DataTransformer {
         description: intervention.description,
         nextAction: intervention.next_action,
         dueDate: intervention.due_date,
-        completedAt: intervention.completed_at,
+        completedAt: intervention.completed_at ?? undefined,
         notes: intervention.notes,
       })),
 
