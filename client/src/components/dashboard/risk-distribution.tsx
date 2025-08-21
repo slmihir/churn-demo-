@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
 import { Doughnut } from "react-chartjs-2";
@@ -75,7 +75,7 @@ export default function RiskDistribution() {
     plugins: {
       legend: {
         position: "bottom",
-        labels: { color: theme.mutedTick, usePointStyle: true, padding: 20 },
+        labels: { color: theme.mutedTick, usePointStyle: true, padding: 12, font: { size: 10 } },
       },
       tooltip: {
         backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -90,14 +90,14 @@ export default function RiskDistribution() {
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-5">
         <TooltipProvider>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">Churn Risk Distribution</h3>
+              <h3 className="text-[12px] font-medium text-foreground/70">Churn Risk Distribution</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle size={14} className="text-foreground/40" />
+                  <HelpCircle size={12} className="text-foreground/40" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Distribution of customers by churn risk</p>
@@ -106,11 +106,11 @@ export default function RiskDistribution() {
             </div>
           </div>
         </TooltipProvider>
-        <div className="h-64">
+        <div className="h-32">
           {data ? (
             <Doughnut data={data} options={options} />
           ) : (
-            <div className="h-64 bg-muted rounded-md animate-pulse" />
+            <div className="h-32 bg-muted rounded-md animate-pulse" />
           )}
         </div>
       </CardContent>

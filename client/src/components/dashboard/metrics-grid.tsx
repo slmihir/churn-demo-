@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertTriangle, Users, PlayCircle, DollarSign, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import RiskDistribution from "./risk-distribution";
 
 export default function MetricsGrid() {
   const { data: metrics, isLoading } = useQuery<any>({
@@ -11,8 +12,8 @@ export default function MetricsGrid() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        {[...Array(5)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-6">
               <Skeleton className="h-8 w-24 mb-2" />
@@ -70,7 +71,7 @@ export default function MetricsGrid() {
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {metricCards.map((metric, index) => {
           const Icon = metric.icon;
           const isPositive = metric.changeType === "positive";
@@ -104,6 +105,10 @@ export default function MetricsGrid() {
             </Tooltip>
           );
         })}
+        {/* 5th element - Churn Risk Distribution */}
+        <div className="lg:col-span-1">
+          <RiskDistribution />
+        </div>
       </div>
     </TooltipProvider>
   );

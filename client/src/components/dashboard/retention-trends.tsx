@@ -74,11 +74,11 @@ export default function RetentionTrends() {
 
     // Calculate more realistic retention rates by segment
     // High risk users typically have much lower retention
-    const highRiskRetention = Math.max(15, Math.min(35, 100 - (highRiskUsers / totalUsers) * 85));
+    const highRiskRetention = Math.max(25, Math.min(45, 100 - (highRiskUsers / totalUsers) * 90)); // Increased range
     // Medium risk users have moderate retention
-    const mediumRiskRetention = Math.max(45, Math.min(75, 100 - (mediumRiskUsers / totalUsers) * 60));
+    const mediumRiskRetention = Math.max(55, Math.min(85, 100 - (mediumRiskUsers / totalUsers) * 70)); // Increased range
     // Low risk users have high but not perfect retention
-    const lowRiskRetention = Math.max(85, Math.min(95, 100 - (lowRiskUsers / totalUsers) * 15));
+    const lowRiskRetention = Math.max(88, Math.min(98, 100 - (lowRiskUsers / totalUsers) * 20)); // Increased range
 
     // Calculate intervention impact
     const interventionImpact = activeInterventions > 0 ? (completedInterventions / activeInterventions) * 100 : 0;
@@ -123,11 +123,11 @@ export default function RetentionTrends() {
       // Create more dynamic retention data with realistic variations
       const retention = labels.map((_, i) => {
         // Add seasonal variations and trends
-        const seasonalFactor = Math.sin((i / labels.length) * 2 * Math.PI) * 3;
-        const trendFactor = (i / labels.length) * 2; // Slight upward trend
-        const randomVariation = (Math.random() - 0.5) * 4; // Random noise
+        const seasonalFactor = Math.sin((i / labels.length) * 2 * Math.PI) * 8; // Increased from 3 to 8
+        const trendFactor = (i / labels.length) * 4; // Increased from 2 to 4
+        const randomVariation = (Math.random() - 0.5) * 6; // Increased from 4 to 6
         
-        const retentionValue = Math.max(60, Math.min(95, 
+        const retentionValue = Math.max(50, Math.min(95, 
           baseRetention + seasonalFactor + trendFactor + randomVariation
         ));
         
@@ -136,7 +136,7 @@ export default function RetentionTrends() {
 
       // Revenue retention should be slightly higher than user retention
       const revenueRetention = retention.map((v, i) => {
-        const revenueBoost = Math.min(8, Math.max(2, 3 + Math.sin(i * 0.3) * 2));
+        const revenueBoost = Math.min(12, Math.max(3, 5 + Math.sin(i * 0.3) * 4)); // Increased variation
         return Math.min(98, Number((v + revenueBoost).toFixed(1)));
       });
 
@@ -171,17 +171,17 @@ export default function RetentionTrends() {
     const retention = churn.map((v, i) => {
       const baseRetention = Math.max(0, 100 - v);
       // Add realistic variations
-      const seasonalVariation = Math.sin((i / churn.length) * 2 * Math.PI) * 2;
-      const trendVariation = (i / churn.length) * 1.5; // Slight improvement trend
-      const randomNoise = (Math.random() - 0.5) * 3;
+      const seasonalVariation = Math.sin((i / churn.length) * 2 * Math.PI) * 6; // Increased from 2 to 6
+      const trendVariation = (i / churn.length) * 3; // Increased from 1.5 to 3
+      const randomNoise = (Math.random() - 0.5) * 5; // Increased from 3 to 5
       
-      return Math.max(65, Math.min(95, 
+      return Math.max(55, Math.min(95, 
         baseRetention + seasonalVariation + trendVariation + randomNoise
       ));
     });
     
     const revenueRetention = retention.map((v, i) => {
-      const revenuePremium = Math.min(6, Math.max(1.5, 2.5 + Math.sin(i * 0.4) * 1.5));
+      const revenuePremium = Math.min(10, Math.max(2, 4 + Math.sin(i * 0.4) * 3)); // Increased variation
       return Math.min(97, Number((v + revenuePremium).toFixed(1)));
     });
     
@@ -239,7 +239,7 @@ export default function RetentionTrends() {
       },
       y: { 
         beginAtZero: false,
-        min: 60,
+        min: 40,
         max: 100,
         grid: { color: theme.grid }, 
         ticks: { 
@@ -308,13 +308,13 @@ export default function RetentionTrends() {
                   <span className="text-sm font-medium text-blue-700">Intervention Success</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-800">
-                  {retentionMetrics.successRate}%
+                  {retentionMetrics.successRate.toFixed(3)}%
                 </div>
                 <div className="text-xs text-blue-600 mt-1">
                   {retentionMetrics.completedInterventions}/{retentionMetrics.activeInterventions} completed
                 </div>
                 <div className="text-xs text-blue-700 mt-1">
-                  {retentionMetrics.successRate > 30 ? '+' : ''}{retentionMetrics.successRate - 25}% vs target
+                  {retentionMetrics.successRate > 30 ? '+' : ''}{(retentionMetrics.successRate - 25).toFixed(3)}% vs target
                 </div>
               </div>
               
@@ -396,12 +396,7 @@ export default function RetentionTrends() {
                     <span className="text-sm text-gray-700">Active Interventions</span>
                     <Badge variant="outline">{retentionMetrics.activeInterventions}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Completion Rate</span>
-                    <span className="text-sm font-medium text-green-600">
-                      {retentionMetrics.interventionImpact.toFixed(1)}%
-                    </span>
-                  </div>
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">Avg Revenue/User</span>
                     <span className="text-sm font-medium">${retentionMetrics.avgRevenuePerUser.toFixed(0)}</span>

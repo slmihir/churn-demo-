@@ -5,10 +5,9 @@ export default function Sidebar() {
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: "fas fa-tachometer-alt" },
-    { path: "/customers", label: "Customers", icon: "fas fa-users" },
     { path: "/playbooks", label: "Playbooks", icon: "fas fa-play-circle" },
-
     { path: "/analytics", label: "Analytics", icon: "fas fa-chart-line" },
+    { path: "/customers", label: "Customers", icon: "fas fa-users" },
     { path: "/settings", label: "Settings", icon: "fas fa-cog" },
   ];
 
