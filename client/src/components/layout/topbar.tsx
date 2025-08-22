@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import type { RiskAlert } from "@shared/schema";
+import { useLocation } from "wouter";
 
 export default function TopBar() {
   const queryClient = useQueryClient();
@@ -14,6 +15,7 @@ export default function TopBar() {
 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [location] = useLocation();
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
@@ -48,11 +50,30 @@ export default function TopBar() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  // Get page title based on current route
+  const getPageTitle = () => {
+    switch (location) {
+      case "/":
+      case "/dashboard":
+        return "Dashboard";
+      case "/customers":
+        return "Customers";
+      case "/playbooks":
+        return "Playbooks";
+      case "/analytics":
+        return "Analytics";
+      case "/settings":
+        return "Settings";
+      default:
+        return "Dashboard";
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">Churn Dashboard</h2>
+          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">Churn {getPageTitle()}</h2>
           <Badge variant="outline" className="h-5 rounded-full border-border text-[11px] leading-none text-foreground/70">
             Live
           </Badge>

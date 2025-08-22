@@ -4,10 +4,10 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: "fas fa-tachometer-alt" },
-    { path: "/playbooks", label: "Playbooks", icon: "fas fa-play-circle" },
-    { path: "/analytics", label: "Analytics", icon: "fas fa-chart-line" },
+    { path: "/analytics", label: "Dashboard", icon: "fas fa-chart-line" },
     { path: "/customers", label: "Customers", icon: "fas fa-users" },
+    { path: "/playbooks", label: "Playbooks", icon: "fas fa-play-circle" },
+    { path: "/dashboard", label: "Analytics", icon: "fas fa-tachometer-alt" },
     { path: "/settings", label: "Settings", icon: "fas fa-cog" },
   ];
 
@@ -22,7 +22,7 @@ export default function Sidebar() {
 
       <nav className="mt-2">
         {navItems.map((item) => {
-          const isActive = location === item.path || (item.path === "/" && location === "/dashboard");
+          const isActive = location === item.path || (item.path === "/dashboard" && location === "/");
 
           return (
             <Link key={item.path} href={item.path}>
