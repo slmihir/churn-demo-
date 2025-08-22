@@ -5,12 +5,7 @@ import TopBar from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -18,16 +13,6 @@ import CXRescueInterventions from "@/components/dashboard/cx-rescue-intervention
 
 export default function Playbooks() {
   const [selectedPlaybook, setSelectedPlaybook] = useState<any>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    customerId: "",
-    type: "Executive Check-in",
-    priority: "medium",
-    assignedCsm: "Sarah Chen",
-    description: "",
-    nextAction: "",
-    notes: "",
-  });
   
 
   const { toast } = useToast();
@@ -39,30 +24,6 @@ export default function Playbooks() {
 
   const { data: customers } = useQuery<any[]>({
     queryKey: ["/api/customers"],
-  });
-
-  const createInterventionMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest("POST", "/api/interventions", {
-        customerId: parseInt(data.customerId),
-        type: data.type,
-        priority: data.priority,
-        assignedCsm: data.assignedCsm,
-        description: data.description,
-        nextAction: data.nextAction,
-        notes: data.notes,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/interventions"] });
-      toast({
-        title: "Playbook Created",
-        description: "New intervention has been successfully created.",
-      });
-      setIsCreateOpen(false);
-      resetForm();
-    },
   });
 
   const updateInterventionMutation = useMutation({
@@ -94,30 +55,7 @@ export default function Playbooks() {
     },
   });
 
-  const resetForm = () => {
-    setFormData({
-      customerId: "",
-      type: "Executive Check-in",
-      priority: "medium",
-      assignedCsm: "Sarah Chen",
-      description: "",
-      nextAction: "",
-      notes: "",
-    });
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.customerId) {
-      toast({
-        title: "Error",
-        description: "Please select a customer.",
-        variant: "destructive",
-      });
-      return;
-    }
-    createInterventionMutation.mutate(formData);
-  };
 
   const getCustomerName = (customerId: number) => {
     const customer = customers?.find((c: any) => c.id === customerId);
@@ -212,22 +150,7 @@ export default function Playbooks() {
     },
   ];
 
-  const interventionTypes = [
-    "Executive Check-in",
-    "Product Training",
-    "Special Offer",
-    "Support Escalation",
-    "Payment Recovery",
-    "Engagement Boost",
-  ];
 
-  const csms = [
-    "Sarah Chen",
-    "Mike Johnson",
-    "Lisa Wang",
-    "David Kim",
-    "Emma Thompson",
-  ];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -240,20 +163,15 @@ export default function Playbooks() {
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold text-gray-900">Retention Playbooks</h1>
-              <Button onClick={() => setIsCreateOpen(true)} className="bg-primary hover:bg-primary/90">
-                <i className="fas fa-plus mr-2"></i>
-                Create Intervention
-              </Button>
             </div>
             <p className="text-gray-600">Automated and manual intervention workflows to reduce customer churn</p>
           </div>
 
           <Tabs defaultValue="templates" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
-              <TabsTrigger value="create">Create</TabsTrigger>
               <TabsTrigger value="cx-rescue">CX Rescue</TabsTrigger>
             </TabsList>
 
@@ -380,248 +298,17 @@ export default function Playbooks() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="create" className="space-y-6">
-              {/* Create Intervention Form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Intervention</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="customer">Customer</Label>
-                      <Select value={formData.customerId} onValueChange={(value) => setFormData({ ...formData, customerId: value })}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select customer..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers?.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.id.toString()}>
-                              {customer.name} - {customer.company}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="type">Intervention Type</Label>
-                      <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {interventionTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="priority">Priority</Label>
-                      <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="csm">Assigned CSM</Label>
-                      <Select value={formData.assignedCsm} onValueChange={(value) => setFormData({ ...formData, assignedCsm: value })}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {csms.map((csm) => (
-                            <SelectItem key={csm} value={csm}>
-                              {csm}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
 
-                    <div>
-                      <Label htmlFor="description">Description</Label>
-                      <Input
-                        id="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Brief description of the intervention..."
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="nextAction">Next Action</Label>
-                      <Input
-                        id="nextAction"
-                        value={formData.nextAction}
-                        onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
-                        placeholder="What's the next step?"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="notes">Notes</Label>
-                      <Textarea
-                        id="notes"
-                        value={formData.notes}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        placeholder="Add any specific notes or context..."
-                        className="h-20"
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        disabled={createInterventionMutation.isPending}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        {createInterventionMutation.isPending ? "Creating..." : "Create Intervention"}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="cx-rescue" className="space-y-6">
               {/* CX Rescue Interventions */}
-              <CXRescueInterventions onNewIntervention={() => setIsCreateOpen(true)} />
+              <CXRescueInterventions onNewIntervention={() => {}} />
             </TabsContent>
           </Tabs>
         </main>
       </div>
 
-      {/* Create Intervention Modal */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Intervention</DialogTitle>
-          </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="customer">Customer</Label>
-              <Select value={formData.customerId} onValueChange={(value) => setFormData({ ...formData, customerId: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select customer..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers?.map((customer: any) => (
-                    <SelectItem key={customer.id} value={customer.id.toString()}>
-                      {customer.name} - {customer.company}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="type">Intervention Type</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {interventionTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="priority">Priority</Label>
-              <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="csm">Assigned CSM</Label>
-              <Select value={formData.assignedCsm} onValueChange={(value) => setFormData({ ...formData, assignedCsm: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {csms.map((csm) => (
-                    <SelectItem key={csm} value={csm}>
-                      {csm}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of the intervention..."
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nextAction">Next Action</Label>
-              <Input
-                id="nextAction"
-                value={formData.nextAction}
-                onChange={(e) => setFormData({ ...formData, nextAction: e.target.value })}
-                placeholder="What's the next step?"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Add any specific notes or context..."
-                className="h-20"
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createInterventionMutation.isPending}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {createInterventionMutation.isPending ? "Creating..." : "Create Intervention"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* View Intervention Modal */}
       <Dialog open={!!selectedPlaybook} onOpenChange={(open) => { if (!open) setSelectedPlaybook(null); }}>

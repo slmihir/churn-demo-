@@ -314,7 +314,7 @@ export default function RetentionTrends() {
                   {retentionMetrics.completedInterventions}/{retentionMetrics.activeInterventions} completed
                 </div>
                 <div className="text-xs text-blue-700 mt-1">
-                  {retentionMetrics.successRate > 30 ? '+' : ''}{(retentionMetrics.successRate - 25).toFixed(3)}% vs target
+                  {retentionMetrics.successRate > 25 ? '+' : ''}{(retentionMetrics.successRate - 20).toFixed(1)}% vs target
                 </div>
               </div>
               
@@ -330,7 +330,7 @@ export default function RetentionTrends() {
                   {retentionMetrics.roi}% ROI
                 </div>
                 <div className="text-xs text-purple-700 mt-1">
-                  +${(retentionMetrics.revenueSaved * 0.15).toFixed(0)} vs last month
+                  +${(retentionMetrics.revenueSaved * 0.08).toFixed(0)} vs last month
                 </div>
               </div>
               

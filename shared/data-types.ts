@@ -236,7 +236,7 @@ export const DEFAULT_MOCK_DATA: MockDataConfiguration = {
     churnChange: -2.1,
     riskChange: 8,
     revenueIncrease: 15,
-    revenuePerCompletedIntervention: 8500,
+    revenuePerCompletedIntervention: 1200,
   },
   chartData: {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],

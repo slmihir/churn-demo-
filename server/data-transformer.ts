@@ -182,7 +182,7 @@ export class DataTransformer {
         churnChange: -2.1,
         riskChange: 8,
         revenueIncrease: 15,
-        revenuePerCompletedIntervention: 8500,
+        revenuePerCompletedIntervention: 1200,
       },
 
       chartData: {
