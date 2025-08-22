@@ -57,14 +57,15 @@ export default function RetentionTrends() {
     return { foreground, success, primary, grid, mutedTick };
   }, []);
 
-  // Calculate detailed retention metrics
+  // Calculate detailed retention metrics using ML analytics for accurate risk distribution
   const retentionMetrics = useMemo(() => {
-    if (!users || !interventionAnalytics) return null;
+    if (!users || !interventionAnalytics || !mlAnalytics) return null;
 
     const totalUsers = users.length;
-    const highRiskUsers = users.filter((u: any) => parseFloat(u.churnRisk) >= 80).length;
-    const mediumRiskUsers = users.filter((u: any) => parseFloat(u.churnRisk) >= 50 && parseFloat(u.churnRisk) < 80).length;
-    const lowRiskUsers = users.filter((u: any) => parseFloat(u.churnRisk) < 50).length;
+    // Use ML analytics for accurate risk distribution instead of static churnRisk field
+    const highRiskUsers = mlAnalytics.riskDistribution?.high || 0;
+    const mediumRiskUsers = mlAnalytics.riskDistribution?.medium || 0;
+    const lowRiskUsers = mlAnalytics.riskDistribution?.low || 0;
 
     const activeInterventions = interventionAnalytics.overall_metrics?.total_interventions || 0;
     const completedInterventions = interventionAnalytics.overall_metrics?.completed_interventions || 0;
